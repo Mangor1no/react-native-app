@@ -1,0 +1,27 @@
+const globalStyles = {
+    darkBackgroundColor: '#191516',
+    darkTextColor: '#f5f3f5',
+    darkDescColor: '#e9e5e9',
+    marginTopStandard: 25,
+    marginBottomStandard: 25,
+    marginLeftStandard: 25,
+    marginRightStandard: 25,
+    paddingTopStandard: 25,
+    paddingBottomStandard: 25,
+    paddingLeftStandard: 25,
+    paddingRightStandard: 25,
+    fontSizeTitle: 40,
+    fontWeightTitle: 'bold',
+    fontSizeSubTitle: 25,
+    fontWeightSubTitle: 'bold',
+    fontSizeDesc: 20,
+    fontWeightDesc: 'normal',
+    avatarCircle: 45 / 2,
+    avatarCircleWidth: 45,
+    avatarCircleHeight: 45,
+    albumCoverImageWidth: 180,
+    albumCoverImageHeight: 180,
+    albumCoverImageBorderRadius: 15,
+};
+
+export default globalStyles;
