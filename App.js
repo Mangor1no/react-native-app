@@ -22,7 +22,6 @@ const App = () => {
 
     const headerOptions = {
         headerLeft: () => null,
-        // headerTransparent: true,
         headerStyle: {
             borderBottomWidth: 0,
             backgroundColor: globalStyles.darkBackgroundColor,
@@ -53,7 +52,7 @@ const App = () => {
                         <Stack.Screen
                             name="Album"
                             component={Album}
-                            options={headerOptions}
+                            options={{headerShown: false}}
                         />
                     </Stack.Navigator>
                 </NavigationContainer>

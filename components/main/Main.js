@@ -6,50 +6,70 @@ import {
     StyleSheet,
     Image,
     FlatList,
-    ScrollView,
     TouchableOpacity,
+    RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import globalStyles from '../style/globalStyles';
 import {
-    getTopAlbumUS,
-    getTopAlbumVietnam,
-    getTopAlbumKorea,
-} from '../../api/api';
-import {getTopFiveAlbumUS} from '../../actions';
+    getTopFiveAlbumUS,
+    getTopFiveAlbumVietnam,
+    getTopFiveAlbumKorea,
+    navigateRoute,
+    getRandomAlbumForNewDay,
+    getTopSinger,
+    getAlbumUSRapHiphop,
+} from '../../actions';
 
 const Main = () => {
     const dispatch = useDispatch();
-    const [topAlbumUS, setTopAlbumUS] = useState([]);
-    const [topAlbumVietnam, setTopAlbumVietnam] = useState([]);
-    const [topAlbumKorea, setTopAlbumKorea] = useState([]);
-    const topFiveAlbumUS = useSelector((state) => state.topFiveAlbumUS);
-    const topFiveAlbumKorea = useSelector((state) => state.topFiveAlbumKorea);
-    const topFiveAlbumVietnam = useSelector(
-        (state) => state.topFiveAlbuVietnam,
+
+    const [refreshing, setRefreshing] = useState(false);
+
+    let topFiveAlbumUS = useSelector((state) => state.albums.resultAlbumUS);
+    let topFiveAlbumKorea = useSelector(
+        (state) => state.albums.resultAlbumKorea,
+    );
+    let topFiveAlbumVietnam = useSelector(
+        (state) => state.albums.resultAlbumVietnam,
+    );
+    let albumForNewDay = useSelector(
+        (state) => state.albums.resultAlbumForNewDay,
+    );
+    let topSingers = useSelector((state) => {
+        return state.singers.resultTopSingers;
+    });
+    let topAlbumUSRapHiphop = useSelector(
+        (state) => state.albums.resultAlbumUSRapHiphop,
     );
 
-    console.log(1, topFiveAlbumUS);
+    const getData = () => {
+        dispatch(getTopFiveAlbumUS());
+        dispatch(getTopFiveAlbumVietnam());
+        dispatch(getTopFiveAlbumKorea());
+        dispatch(getRandomAlbumForNewDay());
+        dispatch(getTopSinger());
+        dispatch(getAlbumUSRapHiphop());
+    };
 
     useEffect(() => {
-        dispatch(getTopFiveAlbumUS());
-        async function getData() {
-            let resultAlbumUS = await getTopAlbumUS();
-            let resultAlbumVietnam = await getTopAlbumVietnam();
-            let resultAlbumKorea = await getTopAlbumKorea();
-
-            setTopAlbumUS(resultAlbumUS);
-            setTopAlbumVietnam(resultAlbumVietnam);
-            setTopAlbumKorea(resultAlbumKorea);
-        }
-        getData();
+        (async () => {
+            await getData();
+        })();
     }, []);
 
     const navigation = useNavigation();
 
-    const handlePress = (item) => {
-        console.log(item.albumUrl);
-        navigation.navigate('Album');
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        getData();
+        return setRefreshing(false);
+    };
+
+    const handlePress = async (item) => {
+        await dispatch(navigateRoute('Album'));
+        console.log(item);
+        await navigation.navigate('Album', {albumSongList: item.albumSongList});
     };
 
     const renderItem = ({item}) => {
@@ -60,6 +80,26 @@ const Main = () => {
         );
     };
 
+    const renderItemSinger = ({item}) => {
+        return (
+            <View>
+                <TouchableOpacity onPress={() => handlePress(item)}>
+                    <Singer data={item} />
+                </TouchableOpacity>
+            </View>
+        );
+    };
+
+    const Singer = ({data}) => (
+        <View style={styles.singerItem}>
+            <Image
+                source={{uri: data.singerCover}}
+                style={styles.singerCover}
+            />
+            <Text style={styles.titleContent}>{data.singerName}</Text>
+        </View>
+    );
+
     const Album = ({data}) => (
         <View style={styles.albumItem}>
             <Image source={{uri: data.albumCover}} style={styles.albumCover} />
@@ -69,61 +109,158 @@ const Main = () => {
     );
 
     const renderListAlbumUS = () => {
-        return (
-            <View key={topAlbumUS.title} style={styles.albumListWrapper}>
-                <Text style={styles.sectionListHeader}>{topAlbumUS.title}</Text>
-                <FlatList
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    data={topAlbumUS.data}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => item + index}
-                    contentContainerStyle={styles.albumList}
-                />
-            </View>
-        );
+        if (topFiveAlbumUS.data && topFiveAlbumUS.data.length > 0) {
+            return (
+                <View
+                    key={topFiveAlbumUS.title}
+                    style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {topFiveAlbumUS.title}
+                    </Text>
+                    <FlatList
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        data={topFiveAlbumUS.data}
+                        renderItem={renderItem}
+                        keyExtractor={(item, index) => item + index}
+                        contentContainerStyle={styles.albumList}
+                    />
+                </View>
+            );
+        }
     };
+
     const renderListAlbumVietnam = () => {
-        return (
-            <View key={topAlbumVietnam.title} style={styles.albumListWrapper}>
-                <Text style={styles.sectionListHeader}>
-                    {topAlbumVietnam.title}
-                </Text>
-                <FlatList
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    data={topAlbumVietnam.data}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => item + index}
-                    contentContainerStyle={styles.albumList}
-                />
-            </View>
-        );
+        if (topFiveAlbumVietnam.data && topFiveAlbumVietnam.data.length > 0) {
+            return (
+                <View
+                    key={topFiveAlbumVietnam.title}
+                    style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {topFiveAlbumVietnam.title}
+                    </Text>
+                    <FlatList
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        data={topFiveAlbumVietnam.data}
+                        renderItem={renderItem}
+                        keyExtractor={(item, index) => item + index}
+                        contentContainerStyle={styles.albumList}
+                    />
+                </View>
+            );
+        }
     };
+
     const renderListAlbumKorea = () => {
+        if (topFiveAlbumKorea.data && topFiveAlbumKorea.data.length > 0) {
+            return (
+                <View
+                    key={topFiveAlbumKorea.title}
+                    style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {topFiveAlbumKorea.title}
+                    </Text>
+                    <FlatList
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        data={topFiveAlbumKorea.data}
+                        renderItem={renderItem}
+                        keyExtractor={(item, index) => item + index}
+                        contentContainerStyle={styles.albumList}
+                    />
+                </View>
+            );
+        }
+    };
+
+    const renderListTopSingers = () => {
+        if (topSingers.data && topSingers.data.length > 0) {
+            return (
+                <View key={topSingers.title} style={styles.singerListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {topSingers.title}
+                    </Text>
+                    <FlatList
+                        horizontal={false}
+                        numColumns={3}
+                        showsVerticalScrollIndicator={false}
+                        data={topSingers.data}
+                        renderItem={renderItemSinger}
+                        keyExtractor={(item, index) => item + index}
+                        columnWrapperStyle={styles.singerList}
+                    />
+                </View>
+            );
+        }
+    };
+
+    const renderAlbumForNewDay = () => {
+        if (albumForNewDay.data && albumForNewDay.data.length > 0) {
+            return (
+                <View
+                    key={albumForNewDay.title}
+                    style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {albumForNewDay.title}
+                    </Text>
+                    <View style={styles.newDayCoverWrapper}>
+                        <Image
+                            source={{uri: albumForNewDay.data[0].albumCover}}
+                            style={styles.newDayCover}
+                        />
+                    </View>
+                </View>
+            );
+        }
+    };
+
+    const renderListAlbumUSRapHiphop = () => {
+        if (topAlbumUSRapHiphop.data && topAlbumUSRapHiphop.data.length > 0) {
+            return (
+                <View
+                    key={topAlbumUSRapHiphop.title}
+                    style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        {topAlbumUSRapHiphop.title}
+                    </Text>
+                    <FlatList
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        data={topAlbumUSRapHiphop.data}
+                        renderItem={renderItem}
+                        keyExtractor={(item, index) => item + index}
+                        contentContainerStyle={styles.albumList}
+                    />
+                </View>
+            );
+        }
+    };
+
+    const albumLists = () => {
         return (
-            <View key={topAlbumKorea.title} style={styles.albumListWrapper}>
-                <Text style={styles.sectionListHeader}>
-                    {topAlbumKorea.title}
-                </Text>
-                <FlatList
-                    horizontal={true}
-                    showsHorizontalScrollIndicator={false}
-                    data={topAlbumKorea.data}
-                    renderItem={renderItem}
-                    keyExtractor={(item, index) => item + index}
-                    contentContainerStyle={styles.albumList}
-                />
-            </View>
+            <>
+                {renderAlbumForNewDay(navigation)}
+                {renderListAlbumUS(navigation)}
+                {renderListAlbumVietnam(navigation)}
+                {renderListAlbumKorea(navigation)}
+                {renderListTopSingers(navigation)}
+                {renderListAlbumUSRapHiphop(navigation)}
+            </>
         );
     };
 
     return (
-        <ScrollView style={styles.mainWrapper}>
-            {renderListAlbumUS(navigation)}
-            {renderListAlbumVietnam(navigation)}
-            {renderListAlbumKorea(navigation)}
-        </ScrollView>
+        <FlatList
+            style={styles.mainWrapper}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={handleRefresh}
+                />
+            }
+            ListHeaderComponent={albumLists}
+        />
     );
 };
 
@@ -167,6 +304,27 @@ const styles = StyleSheet.create({
     },
     albumItem: {
         marginLeft: 15,
+    },
+    newDayCoverWrapper: {
+        paddingLeft: 20,
+        paddingRight: 20,
+    },
+    newDayCover: {
+        height: 250,
+        borderRadius: 15,
+    },
+    singerListWrapper: {},
+    singerList: {
+        justifyContent: 'space-evenly',
+        marginBottom: 25,
+    },
+    singerItem: {
+        maxWidth: 100,
+    },
+    singerCover: {
+        width: 100,
+        height: 100,
+        borderRadius: globalStyles.albumCoverImageBorderRadius,
     },
 });
 

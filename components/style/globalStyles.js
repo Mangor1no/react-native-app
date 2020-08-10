@@ -1,7 +1,8 @@
 const globalStyles = {
-    darkBackgroundColor: '#191516',
+    darkBackgroundColor: '#0e0e0e',
     darkTextColor: '#f5f3f5',
     darkDescColor: '#e9e5e9',
+    darkHrColor: '#242424',
     marginTopStandard: 25,
     marginBottomStandard: 25,
     marginLeftStandard: 25,
