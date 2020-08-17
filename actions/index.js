@@ -18,6 +18,14 @@ import {
     GET_ALBUM_US_RAP_HIPHOP_FAIL,
     GET_ALBUM_US_RAP_HIPHOP_SUCCESS,
     GET_ALBUM_US_RAP_HIPHOP,
+    GET_TOP_SINGLE_US,
+    GET_TOP_SINGLE_US_SUCCESS,
+    GET_TOP_SINGLE_US_FAIL,
+    SELECT_SONG,
+    LOOP_MODE,
+    SET_SONG_CURRENT_POSITION,
+    SET_SONG_DURATION,
+    PLAY_STATUS,
 } from './actionTypes';
 
 import {
@@ -27,6 +35,7 @@ import {
     getAlbumForNewDay,
     getTopSingers,
     getTopAlbumUSRapHiphop,
+    getTopSingleUS,
 } from '../api/api';
 
 export const getTopFiveAlbumUS = () => {
@@ -106,6 +115,54 @@ export const getAlbumUSRapHiphop = () => {
         }
     };
 };
+
+export const getTopSingleUSSong = () => {
+    return async (dispatch) => {
+        dispatch(getTopSingleUSStart());
+
+        const result = await getTopSingleUS();
+        if (result) {
+            dispatch(getTopSingleUSSuccess(result));
+        } else {
+            dispatch(getTopSingleUSFail());
+        }
+    };
+};
+
+export const selectSong = (data) => ({
+    type: SELECT_SONG,
+    payload: {
+        ...data,
+    },
+});
+
+export const loopMode = (data) => ({
+    type: LOOP_MODE,
+    payload: {
+        data,
+    },
+});
+
+export const setSongDuration = (data) => ({
+    type: SET_SONG_DURATION,
+    payload: {
+        data,
+    },
+});
+
+export const updateSongCurrentPosition = (data) => ({
+    type: SET_SONG_CURRENT_POSITION,
+    payload: {
+        data,
+    },
+});
+
+export const togglePlayStatus = (data) => ({
+    type: PLAY_STATUS,
+    payload: {
+        data,
+    },
+});
 
 const getAlbumForNewDayStart = () => ({
     type: GET_ALBUM_FOR_NEW_DAY,
@@ -206,4 +263,19 @@ const getTopAlbumUSRapHiphopSuccess = (data) => ({
 
 const getTopAlbumUSRapHiphopFail = () => ({
     type: GET_ALBUM_US_RAP_HIPHOP_FAIL,
+});
+
+const getTopSingleUSStart = () => ({
+    type: GET_TOP_SINGLE_US,
+});
+
+const getTopSingleUSSuccess = (data) => ({
+    type: GET_TOP_SINGLE_US_SUCCESS,
+    payload: {
+        ...data,
+    },
+});
+
+const getTopSingleUSFail = () => ({
+    type: GET_TOP_SINGLE_US_FAIL,
 });

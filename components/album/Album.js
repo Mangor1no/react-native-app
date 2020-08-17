@@ -7,7 +7,7 @@ import {
     FlatList,
     TouchableOpacity,
 } from 'react-native';
-import globalStyles from '../style/globalStyles';
+import globalStyles from '../../style/globalStyles';
 
 const Album = ({route}) => {
     const handlePress = (item) => {

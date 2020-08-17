@@ -7,6 +7,7 @@ import {
     ALBUM_FOR_NEW_DAY_URL,
     TOP_SINGERS_URL,
     TOP_ALBUM_US_RAP_HIPHOP_URL,
+    TOP_SINGLE_US_URL,
 } from './apiConfig';
 
 const getTopAlbumUS = async () => {
@@ -80,6 +81,18 @@ const getTopAlbumUSRapHiphop = async () => {
     return data;
 };
 
+const getTopSingleUS = async () => {
+    let data;
+    await axios.get(DOMAIN_API + TOP_SINGLE_US_URL).then((res) => {
+        if (res && res.data) {
+            data = res.data;
+        } else {
+            data = null;
+        }
+    });
+    return data;
+};
+
 export {
     getTopAlbumUS,
     getTopAlbumVietnam,
@@ -87,4 +100,5 @@ export {
     getAlbumForNewDay,
     getTopSingers,
     getTopAlbumUSRapHiphop,
+    getTopSingleUS,
 };

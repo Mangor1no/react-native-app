@@ -10,7 +10,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import globalStyles from '../style/globalStyles';
+import globalStyles from '../../style/globalStyles';
 import {
     getTopFiveAlbumUS,
     getTopFiveAlbumVietnam,
@@ -19,6 +19,9 @@ import {
     getRandomAlbumForNewDay,
     getTopSinger,
     getAlbumUSRapHiphop,
+    getTopSingleUSSong,
+    selectSong,
+    prevSong,
 } from '../../actions';
 
 const Main = () => {
@@ -42,6 +45,7 @@ const Main = () => {
     let topAlbumUSRapHiphop = useSelector(
         (state) => state.albums.resultAlbumUSRapHiphop,
     );
+    let topSingleUS = useSelector((state) => state.single.resultSingleUS);
 
     const getData = () => {
         dispatch(getTopFiveAlbumUS());
@@ -50,12 +54,11 @@ const Main = () => {
         dispatch(getRandomAlbumForNewDay());
         dispatch(getTopSinger());
         dispatch(getAlbumUSRapHiphop());
+        dispatch(getTopSingleUSSong());
     };
 
     useEffect(() => {
-        (async () => {
-            await getData();
-        })();
+        getData();
     }, []);
 
     const navigation = useNavigation();
@@ -68,8 +71,24 @@ const Main = () => {
 
     const handlePress = async (item) => {
         await dispatch(navigateRoute('Album'));
-        console.log(item);
         await navigation.navigate('Album', {albumSongList: item.albumSongList});
+    };
+
+    const togglePlayer = async (item, listItem) => {
+        await dispatch(navigateRoute('Player'));
+
+        var len = listItem.length;
+
+        // get prev, current and next song
+        var current = listItem[item.songIndex - 1]; // because songIndex start from 1 :(
+        var previous = listItem[(item.songIndex + len - 2) % len];
+        var next = listItem[item.songIndex % len];
+
+        await dispatch(selectSong([previous, current, next]));
+
+        await navigation.navigate('Player', {
+            listItem: listItem,
+        });
     };
 
     const renderItem = ({item}) => {
@@ -89,6 +108,22 @@ const Main = () => {
             </View>
         );
     };
+
+    const renderItemSingle = ({item}, listItem) => {
+        return (
+            <TouchableOpacity onPress={() => togglePlayer(item, listItem)}>
+                <Single data={item} />
+            </TouchableOpacity>
+        );
+    };
+
+    const Single = ({data}) => (
+        <View style={styles.albumItem}>
+            <Image source={{uri: data.songCover}} style={styles.albumCover} />
+            <Text style={styles.titleContent}>{data.songName}</Text>
+            <Text style={styles.descContent}>{data.songAuthor}</Text>
+        </View>
+    );
 
     const Singer = ({data}) => (
         <View style={styles.singerItem}>
@@ -237,9 +272,32 @@ const Main = () => {
         }
     };
 
+    const renderListSingleUS = () => {
+        if (topSingleUS.data && topSingleUS.data.length > 0) {
+            return (
+                <View key={topSingleUS.title} style={styles.albumListWrapper}>
+                    <Text style={styles.sectionListHeader}>
+                        Song you may like
+                    </Text>
+                    <FlatList
+                        horizontal={true}
+                        showsHorizontalScrollIndicator={false}
+                        data={topSingleUS.data}
+                        renderItem={(item) =>
+                            renderItemSingle(item, topSingleUS.data)
+                        }
+                        keyExtractor={(item, index) => item + index}
+                        contentContainerStyle={styles.albumList}
+                    />
+                </View>
+            );
+        }
+    };
+
     const albumLists = () => {
         return (
             <>
+                {renderListSingleUS(navigation)}
                 {renderAlbumForNewDay(navigation)}
                 {renderListAlbumUS(navigation)}
                 {renderListAlbumVietnam(navigation)}
